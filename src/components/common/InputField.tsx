@@ -1,14 +1,27 @@
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import React from 'react';
+import { StyleSheet, Text, TextInput, View, TextInputProps } from "react-native";
 import theme from "../../theme/theme";
 
+interface InputFieldProps extends TextInputProps {
+    label: string;
+    errors?: string;
+}
+
 // Reusable InputField Component
-const InputField = ({ label, onChangeText, placeholder, onBlur, value, errors }) => {
+const InputField = ({ label, onChangeText, placeholder, onBlur, value, errors, keyboardType }: InputFieldProps) => {
     const { colors, fonts } = theme;
 
     return (
         <View>
             <Text style={styles.inputLabel}>{label}</Text>
-            <TextInput style={[styles.input, { borderBlockColor: errors ? 'red' : theme.colors.secondaryGray }]} onChangeText={onChangeText} placeholder={placeholder} onBlur={onBlur} value={value} />
+            <TextInput
+                keyboardType={keyboardType}
+                style={[styles.input, { borderBottomColor: errors ? 'red' : theme.colors.secondaryGray }]}
+                onChangeText={onChangeText}
+                placeholder={placeholder}
+                onBlur={onBlur}
+                value={value}
+            />
         </View>
     );
 };
@@ -27,4 +40,4 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         fontFamily: theme.fonts.regular,
     }
-})
+});

@@ -6,20 +6,49 @@ import InputField from '../../../components/common/InputField';
 import GreenButton from '../../../components/common/button';
 import { useNavigation } from '@react-navigation/native';
 import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from '@hookform/resolvers/zod'; // Import zodResolver
+import { z } from 'zod'; // Import Zod
 
+//zod validation schema
+const schema = z.object({
+    mail: z.string().email('Invalid email address').min(1, 'Email is required'),
+    Password: z
+        .string()
+        .min(8, 'Password must be at least 8 characters')
+        .refine(
+            (value) => /[A-Z]/.test(value),
+            'Password must contain at least one uppercase letter'
+        )
+        .refine(
+            (value) => /[0-9]/.test(value),
+            'Password must contain at least one number'
+        )
+        .refine(
+            (value) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value),
+            'Password must contain at least one special character'
+        ),
+});
+// Infer the type of the schema
+type Schema = z.infer<typeof schema>;
+
+// Login Screen
 const Login = () => {
     const { colors, fonts } = theme;
     const {
         control,
         handleSubmit,
         formState: { errors },
-    } = useForm({
+    } = useForm<Schema>({
+        resolver: zodResolver(schema),
         defaultValues: {
-            firstName: "",
-            lastName: "",
+            email: "",
+            Password: "",
         },
     })
+
+
     const onSubmit = (data) => console.log(data)
+
 
     return (
         <SafeAreaView style={styles.safeArea} >
@@ -42,12 +71,13 @@ const Login = () => {
                             value={value}
                             label={"Email"}
                             errors={errors?.mail}
+                            keyboardType={"email-address"}
                         />
                     )}
                     name="mail"
                 />
                 <Separator height={8} />
-                {errors.mail && <Text style={{ color: 'red' }}>This is required.</Text>}
+                {errors.mail && <Text style={{ color: 'red' }}>{errors.mail.message}</Text>}
                 <Separator height={40} />
                 {/* <InputField label="Password" /> */}
                 <Controller
@@ -68,7 +98,7 @@ const Login = () => {
                     name="Password"
                 />
                 <Separator height={8} />
-                {errors.Password && <Text style={{ color: 'red' }}>This is required.</Text>}
+                {errors.Password && <Text style={{ color: 'red' }}>{errors?.Password?.message}</Text>}
                 <Separator height={16} />
                 <ForgotPasswordButton />
                 <Separator height={40} />
@@ -81,10 +111,6 @@ const Login = () => {
 };
 
 export default Login;
-
-
-
-
 
 // Forgot Password Button
 const ForgotPasswordButton = () => {

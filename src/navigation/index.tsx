@@ -4,11 +4,11 @@ import SignedOutStack from './AuthStack';
 import SignedInStack from './AppStack';
 
 const useIsSignedIn = () => {
-    return false;
+    return true;
 };
 
 const useIsSignedOut = () => {
-    return true;
+    return false;
 };
 
 const RootStack = createNativeStackNavigator({

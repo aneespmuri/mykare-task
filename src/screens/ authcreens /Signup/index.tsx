@@ -1,61 +1,130 @@
 import React from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import Separator from '../../../components/common/Separator';
 import theme from '../../../theme/theme';
 import InputField from '../../../components/common/InputField';
 import GreenButton from '../../../components/common/button';
 import { useNavigation } from '@react-navigation/native';
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from 'zod';
 
-const Login = () => {
+const schema = z.object({
+    fullName: z.string().min(1, 'Full Name is required'),
+    email: z.string().email('Invalid email address').min(1, 'Email is required'),
+    Password: z
+        .string()
+        .min(8, 'Password must be at least 8 characters')
+        .refine(
+            (value) => /[A-Z]/.test(value),
+            'Password must contain at least one uppercase letter'
+        )
+        .refine(
+            (value) => /[0-9]/.test(value),
+            'Password must contain at least one number'
+        )
+        .refine(
+            (value) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value),
+            'Password must contain at least one special character'
+        ),
+});
+
+type Schema = z.infer<typeof schema>;
+
+const Signup = () => {
     const { colors, fonts } = theme;
+    const { control, handleSubmit, formState: { errors } } = useForm<Schema>({
+        resolver: zodResolver(schema),
+        defaultValues: {
+            fullName: "",
+            email: "",
+            password: "",
+        },
+    });
 
+    const onSubmit = (data) => console.log(data);
 
     return (
-        <SafeAreaView style={styles.safeArea} >
-            <Text style={styles.headerText}> A </Text>
-            < View style={styles.container} >
+        <SafeAreaView style={styles.safeArea}>
+            <Text style={styles.headerText}>A</Text>
+            <View style={styles.container}>
                 <Text style={styles.loginTitle}>Sign Up</Text>
-                < Text style={styles.subtitle} >Fill the registration form</Text>
-                < Separator height={40} />
-                <InputField label="Full Name" />
+                <Text style={styles.subtitle}>Fill the registration form</Text>
+                <Separator height={40} />
+                <Controller
+                    control={control}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <InputField
+                            placeholder="Full Name"
+                            onBlur={onBlur}
+                            onChangeText={onChange}
+                            value={value}
+                            label="Full Name"
+                            errors={errors?.fullName}
+                        />
+                    )}
+                    name="fullName"
+                />
+                <Separator height={8} />
+                {errors.fullName && <Text style={{ color: 'red' }}>{errors.fullName.message}</Text>}
                 <Separator height={28} />
-                < InputField label="Email" />
+                <Controller
+                    control={control}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <InputField
+                            placeholder="Email"
+                            onBlur={onBlur}
+                            onChangeText={onChange}
+                            value={value}
+                            label="Email"
+                            errors={errors?.email}
+                        />
+                    )}
+                    name="email"
+                />
+                <Separator height={8} />
+                {errors.email && <Text style={{ color: 'red' }}>{errors.email.message}</Text>}
                 <Separator height={28} />
-                < InputField label="Password" />
+                <Controller
+                    control={control}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                        <InputField
+                            placeholder="Password"
+                            onBlur={onBlur}
+                            onChangeText={onChange}
+                            value={value}
+                            label="Password"
+                            errors={errors?.password}
+                        />
+                    )}
+                    name="password"
+                />
+                <Separator height={8} />
+                {errors.password && <Text style={{ color: 'red' }}>{errors.password.message}</Text>}
                 <Separator height={16} />
                 <Separator height={40} />
-                < GreenButton title={"Sign Up"} />
+                <GreenButton title="Sign Up" onPress={handleSubmit(onSubmit)} />
                 <Separator height={40} />
-                < SignupPrompt />
+                <SignupPrompt />
             </View>
         </SafeAreaView>
     );
 };
 
-export default Login;
-
-
-
-
-
-
-
-// Signup Prompt
 const SignupPrompt = () => {
     const { colors, fonts } = theme;
     const navigation = useNavigation();
 
     return (
-        <View style={styles.signupContainer} >
-            <Text style={styles.signupText}> Already have an account? </Text>
+        <View style={styles.signupContainer}>
+            <Text style={styles.signupText}>Already have an account?</Text>
             <Pressable onPress={() => navigation?.navigate("SignIn")}>
-                <Text style={styles.signupLink}> SignIn </Text>
+                <Text style={styles.signupLink}>SignIn</Text>
             </Pressable>
         </View>
     );
 };
 
-// Styles
 const styles = StyleSheet.create({
     safeArea: {
         backgroundColor: theme.colors.white,
@@ -105,4 +174,4 @@ const styles = StyleSheet.create({
     },
 });
 
-
+export default Signup;
