@@ -29,7 +29,8 @@ const Home = () => {
             // Fetch country using IP and access key
             const countryResponse = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
             const countryData = await countryResponse.json();
-            setCountry(countryData.country_name);
+            console.log(countryData?.reason)
+            setCountry(countryData.country_name ? countryData.country_name : countryData.reason);
 
             // Fetch users from WatermelonDB
             const usersCollection = database.collections.get('users');
