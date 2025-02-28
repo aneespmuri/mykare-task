@@ -1,5 +1,5 @@
-import React from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import React, { useContext, useEffect } from 'react';
+import { Alert, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import Separator from '../../../components/common/Separator';
 import theme from '../../../theme/theme';
 import InputField from '../../../components/common/InputField';
@@ -8,11 +8,14 @@ import { useNavigation } from '@react-navigation/native';
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from 'zod';
+import { database } from '../../../../model/database';
+import { Q } from '@nozbe/watermelondb';
+import { AuthContext } from '../../../context/AuthContext';
 
 const schema = z.object({
     fullName: z.string().min(1, 'Full Name is required'),
     email: z.string().email('Invalid email address').min(1, 'Email is required'),
-    Password: z
+    password: z
         .string()
         .min(8, 'Password must be at least 8 characters')
         .refine(
@@ -32,6 +35,7 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 const Signup = () => {
+    const { login } = useContext(AuthContext);
     const { colors, fonts } = theme;
     const { control, handleSubmit, formState: { errors } } = useForm<Schema>({
         resolver: zodResolver(schema),
@@ -42,7 +46,29 @@ const Signup = () => {
         },
     });
 
-    const onSubmit = (data) => console.log(data);
+    const onSubmit = async (data) => {
+        try {
+            const usersCollection = database.collections.get('users');
+            const existingUser = await usersCollection.query(Q.where('email', data.email)).fetch();
+
+            if (existingUser.length > 0) {
+                Alert.alert('Error', 'Email already exists.');
+                return;
+            }
+
+            await database.write(async () => {
+                await usersCollection.create((user) => {
+                    user.username = data.fullName;
+                    user.email = data.email;
+                    user.password = data.password; // In real apps, hash the password before storing
+                });
+            });
+            Alert.alert('Success', 'User registered successfully!');
+            login(data?.email)
+        } catch (error) {
+            Alert.alert('Error', 'Failed to register user.');
+        }
+    };
 
     return (
         <SafeAreaView style={styles.safeArea}>

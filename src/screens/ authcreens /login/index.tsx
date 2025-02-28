@@ -1,5 +1,5 @@
-import React from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useContext } from 'react';
+import { Alert, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Separator from '../../../components/common/Separator';
 import theme from '../../../theme/theme';
 import InputField from '../../../components/common/InputField';
@@ -8,6 +8,10 @@ import { useNavigation } from '@react-navigation/native';
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod'; // Import zodResolver
 import { z } from 'zod'; // Import Zod
+import { database } from '../../../../model/database';
+import { Q } from '@nozbe/watermelondb'
+import { AuthContext } from '../../../context/AuthContext';
+
 
 //zod validation schema
 const schema = z.object({
@@ -33,6 +37,7 @@ type Schema = z.infer<typeof schema>;
 
 // Login Screen
 const Login = () => {
+    const { login } = useContext(AuthContext)
     const { colors, fonts } = theme;
     const {
         control,
@@ -47,7 +52,24 @@ const Login = () => {
     })
 
 
-    const onSubmit = (data) => console.log(data)
+    const onSubmit = async (data) => {
+        try {
+            const usersCollection = database.collections.get('users');
+            const user = await usersCollection.query(
+                Q.where('email', data?.mail),
+                Q.where('password', data?.Password) // In real apps, compare hashed passwords
+            ).fetch();
+
+            if (user.length > 0) {
+                Alert.alert('Success', 'Login successful!');
+                login(data?.mail)
+            } else {
+                Alert.alert('Error', 'Invalid email or password.');
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Failed to login.');
+        }
+    };
 
 
     return (

@@ -1,13 +1,20 @@
 import { ActivityIndicator, Image, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import theme from '../../../theme/theme';
 import Separator from '../../../components/common/Separator';
+import { database } from '../../../../model/database';
+import { AuthContext } from '../../../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
 
 const Home = () => {
+    const navigation = useNavigation()
+    const { logout, userToken } = useContext(AuthContext)
+    console.log(userToken)
     const [ip, setIP] = useState('');
     const [country, setCountry] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [users, setUsers] = useState([])
 
     const fetchData = async () => {
         try {
@@ -20,10 +27,14 @@ const Home = () => {
             setIP(ipData.ip);
 
             // Fetch country using IP and access key
-            const accessKey = '0ffc0328d031052c2ce30ee39e80791d';
-            const countryResponse = await fetch(`https://api.ipapi.com/${ipData.ip}?access_key=${accessKey}`);
+            const countryResponse = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
             const countryData = await countryResponse.json();
             setCountry(countryData.country_name);
+
+            // Fetch users from WatermelonDB
+            const usersCollection = database.collections.get('users');
+            const fetchedUsers = await usersCollection.query().fetch();
+            setUsers(fetchedUsers);
         } catch (err) {
             setError('Failed to fetch location data');
         } finally {
@@ -37,7 +48,7 @@ const Home = () => {
 
     const handleLogout = () => {
         // Clear user session (e.g., using AsyncStorage or Context API)
-        // navigation.navigate('Login');
+        logout()
     };
 
     if (error) {
@@ -81,6 +92,13 @@ const Home = () => {
                     </View>
                 )}
                 <View style={{ flex: 1 }} />
+                {userToken === "admin-token" &&
+
+                    <Pressable onPress={() => navigation.navigate('Users')} style={[styles.logoutButton]}>
+                        <Text style={styles.logoutButtonText}>Users (only see admin)</Text>
+                    </Pressable>
+                }
+                <Separator height={24} />
                 <Pressable onPress={handleLogout} style={styles.logoutButton}>
                     <Text style={styles.logoutButtonText}>Log Out</Text>
                 </Pressable>

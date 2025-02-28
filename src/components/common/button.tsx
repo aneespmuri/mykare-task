@@ -2,7 +2,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import theme from '../../theme/theme';
 
 const GreenButton = ({ title, onPress }) => {
-    console.log(onPress, '...')
     const { colors, fonts } = theme;
 
     return (
