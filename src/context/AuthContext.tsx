@@ -1,12 +1,21 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import * as Keychain from 'react-native-keychain';
 
-// Create the AuthContext
-export const AuthContext = createContext();
+interface AuthContextType {
+    userToken: string | null;
+    isLoading: boolean;
+    login: (email: string) => Promise<void>;
+    logout: () => Promise<void>;
+}
 
-// Create the AuthProvider component
-export const AuthProvider = ({ children }) => {
-    const [userToken, setUserToken] = useState(null); // Store the user token
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+interface AuthProviderProps {
+    children: ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+    const [userToken, setUserToken] = useState<string | null>(null); // Store the user token
     const [isLoading, setIsLoading] = useState(true); // Track loading state
 
     // Check if the user is logged in on app launch
@@ -27,8 +36,8 @@ export const AuthProvider = ({ children }) => {
         checkLoginStatus();
     }, []);
 
-    // / Login function
-    const login = async (email) => {
+    // Login function
+    const login = async (email: string) => {
         try {
             let token;
             if (email.toLowerCase().includes('admin')) {

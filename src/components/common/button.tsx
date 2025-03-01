@@ -1,7 +1,13 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import theme from '../../theme/theme';
 
-const GreenButton = ({ title, onPress }) => {
+interface GreenButtonProps {
+    title: string;
+    onPress: () => void;
+}
+
+const GreenButton = ({ title, onPress }: GreenButtonProps) => {
     const { colors, fonts } = theme;
 
     return (
@@ -10,7 +16,6 @@ const GreenButton = ({ title, onPress }) => {
         </Pressable>
     );
 };
-
 
 export default GreenButton;
 
@@ -25,4 +30,4 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontFamily: theme.fonts.bold,
     },
-})
+});
